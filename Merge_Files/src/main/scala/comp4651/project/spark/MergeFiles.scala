@@ -4,6 +4,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
 import org.apache.hadoop.fs.{FileStatus, FileSystem, LocatedFileStatus, Path, RemoteIterator}
+import org.apache.hadoop.io.IOUtils
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -89,20 +90,11 @@ object MergeFiles {
     val conf = new Conf(args)
 
     val inputPathPattern = new PathPattern(conf.input())
-    val outputPathPattern = new PathPattern(conf.output())
-
-    // condition checking
-    if (!inputPathPattern.matchedKeyVariables(outputPathPattern)) {
-      throw new Exception("Input pattern and output pattern should have the same number of key variables.")
-    }
-
-
-    // build a data structure that can input level and output level type (key, *, or constant).
-
-
+    val outputPathPattern = new OutputPathPattern(conf.output(), inputPathPattern)
 
     // use iterative BFS to get all "matched" directory path loaded into RDD
     val directoryPathsRDD = iterativeBFSLoadDirectories(sc, inputPathPattern).persist()
+    print(directoryPathsRDD.collect().mkString("\n"))
     print("[Output] Number of directories matched: "+directoryPathsRDD.count())
 
     // map into key value pair and group by key
@@ -139,10 +131,36 @@ object MergeFiles {
 
     // for each group create new file and append all small files into it
     // also deleted successful group
-    keyFilePairRDD.foreachPartition{case (key, filePaths) => {
-      
-    }}
+    keyFilePairRDD.foreachPartition(it => {
+      val fs = FileSystem.get(new Configuration())
+      it.foreach{case (k, filePaths) => {
+
+        // create an empty file based on output directory pattern
+        val targetFilePath = outputPathPattern.generateOutputPath(k)
+        val out = fs.create(new Path(targetFilePath), true)
+
+        // append all the small files into the target file
+        for (s <- filePaths) {
+          val in = fs.open(new Path(s))
+          try {
+            IOUtils.copyBytes(in, out, fs.getConf, false)
+            // can comment if every file end with a newline character
+            out.write("\n".getBytes("UTF-8"))
+          } finally {
+            in.close()
+          }
+        }
+
+        out.close()
+
+        // delete small files here...
+        for (s <- filePaths) { fs.delete(new Path(s), false) }
+      }}
+    })
 
     // use BFS with backtracking to delete "useless" directories that matches input directory pattern
+
+
+    sc.stop()
   }
 }
