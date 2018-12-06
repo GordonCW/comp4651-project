@@ -78,7 +78,18 @@ object MergeFiles {
         })
       }
     }
-    pathRDD
+
+    val pathSegmentsLen = inputPathPattern.pathSegments.length
+    // convert the url like path to absolute path on HDFS to ease the processing
+    pathRDD.map(p => {
+      var pS = p.split("/+")
+      val originlLen = pS.length
+      if (pS(originlLen-1).length == 0) {
+        "/" + pS.slice(originlLen-1-pathSegmentsLen,originlLen-1).mkString("/")
+      } else {
+        "/" + pS.slice(originlLen-pathSegmentsLen,originlLen).mkString("/")
+      }
+    })
   }
 
   def main(args: Array[String]): Unit = {
@@ -94,11 +105,13 @@ object MergeFiles {
 
     // use iterative BFS to get all "matched" directory path loaded into RDD
     val directoryPathsRDD = iterativeBFSLoadDirectories(sc, inputPathPattern).persist()
-    print(directoryPathsRDD.collect().mkString("\n"))
-    print("[Output] Number of directories matched: "+directoryPathsRDD.count())
+    println(directoryPathsRDD.collect().mkString("\n"))
+    println("[Output] Number of directories matched: "+directoryPathsRDD.count())
+
+    val extractKeyFunc = inputPathPattern.extractKey(_)
 
     // map into key value pair and group by key
-    val keyDirectoryPathPairRDD = directoryPathsRDD.map(path => (inputPathPattern.extractKey(path), path))
+    val keyDirectoryPathPairRDD = directoryPathsRDD.map(path => (extractKeyFunc(path), path))
       .groupByKey()
 
     // load files path for each group and sort by modification time
@@ -129,6 +142,8 @@ object MergeFiles {
       }}
     })
 
+    val generateOutputPathFunc = outputPathPattern.generateOutputPath(_)
+
     // for each group create new file and append all small files into it
     // also deleted successful group
     keyFilePairRDD.foreachPartition(it => {
@@ -136,7 +151,7 @@ object MergeFiles {
       it.foreach{case (k, filePaths) => {
 
         // create an empty file based on output directory pattern
-        val targetFilePath = outputPathPattern.generateOutputPath(k)
+        val targetFilePath = generateOutputPathFunc(k)
         val out = fs.create(new Path(targetFilePath), true)
 
         // append all the small files into the target file
@@ -162,5 +177,6 @@ object MergeFiles {
 
 
     sc.stop()
+    println("[Output] Program finished successfully~")
   }
 }

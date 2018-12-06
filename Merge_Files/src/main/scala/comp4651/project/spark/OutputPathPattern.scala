@@ -6,7 +6,7 @@ class OutputPathPattern(pattern: String, inputPattern: PathPattern) extends Path
     throw new Exception("Input pattern and output pattern should have the same number of key variables.")
   }
 
-  private val inputKeyToPathSegmentsIndexMap = acceptInputPathPattern(inputPattern)
+  val inputKeyToPathSegmentsIndexMap: Map[Int, Int] = acceptInputPathPattern(inputPattern)
 
   def acceptInputPathPattern(input: PathPattern): Map[Int, Int] = {
     val uniqueInputKeyVariables = generateUniqueKeyVars(input.keyVariables)
@@ -43,17 +43,19 @@ class OutputPathPattern(pattern: String, inputPattern: PathPattern) extends Path
     uniqueKeyVariables
   }
 
-  def generateOutputPath(key: String): String = {
-    if (key.length == 0) return "/" + pathSegments.mkString("/") + "/result.txt"
+  val generateOutputPath: String => String = (key: String) => {
+    if (key.length == 0) {
+      "/" + pathSegments.mkString("/") + "/result.txt"
+    } else {
+      val outputPath = pathSegments
+      val keyArray = key.split("/+").zipWithIndex
+        .map{case (k, i) => (k, inputKeyToPathSegmentsIndexMap(i))}
 
-    val outputPath = pathSegments.clone()
-    val keyArray = key.split("/+").zipWithIndex
-      .map{case (k, i) => (k, inputKeyToPathSegmentsIndexMap(i))}
+      for ((k, i) <- keyArray) {
+        outputPath(i) = k
+      }
 
-    for ((k, i) <- keyArray) {
-      outputPath(i) = k
+      "/" + outputPath.mkString("/") + "/result.txt"
     }
-
-    "/" + outputPath.mkString("/") + "/result.txt"
   }
 }

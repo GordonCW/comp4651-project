@@ -4,6 +4,20 @@ import scala.collection.mutable.ArrayBuffer
 
 class PathPattern(pattern: String) {
 
+  val computePathSegments: String => Array[String] = (path: String) => {
+    var pathSeg = path.split("/+")
+
+    // remove leading and trailing empty segments
+    if (pathSeg(0).length == 0) {
+      pathSeg = pathSeg.drop(1)
+    }
+    val len = pathSeg.length
+    if (pathSeg(len - 1).length == 0) {
+      pathSeg = pathSeg.dropRight(1)
+    }
+    pathSeg
+  }
+
   val pathSegments: Array[String] = computePathSegments(pattern)
 
   val rootDirPath: String = "/" + computeRootDirSegments(pathSegments).mkString("/")
@@ -18,7 +32,7 @@ class PathPattern(pattern: String) {
 
   // assume that the path passed in this function and the constructor have
   // the same number of levels
-  def extractKey(path: String): String = {
+  val extractKey: String => String = (path: String) => {
     val pS = computePathSegments(path)
     val keyVars = ArrayBuffer.empty[String]
     for (l <- keyVariableLevels) {
@@ -47,20 +61,6 @@ class PathPattern(pattern: String) {
       level += 1
     }
     levels.toArray
-  }
-
-  def computePathSegments(path: String): Array[String] = {
-    var pathSeg = path.split("/+")
-
-    // remove leading and trailing empty segments
-    if (pathSeg(0).length == 0) {
-      pathSeg = pathSeg.drop(1)
-    }
-    val len = pathSeg.length
-    if (pathSeg(len - 1).length == 0) {
-      pathSeg = pathSeg.dropRight(1)
-    }
-    pathSeg
   }
 
   def computePathSegmentsBelowRoot(pS: Array[String]): Array[String] = {
