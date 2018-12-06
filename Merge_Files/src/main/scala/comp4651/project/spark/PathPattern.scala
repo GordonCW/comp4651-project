@@ -18,8 +18,24 @@ class PathPattern(path: String) {
 
   val rootDirPath: String = computeRootDirPath()
 
+  val pathSegmentsBelowRoot: Array[String] = computePathSegmentsBelowRoot()
+
   val keyVariables: Array[String] = {
     pathSegments.filter(isKey)
+  }
+
+  def computePathSegmentsBelowRoot(): Array[String] = {
+    var firstKeyIndex = 0
+    for (seg <- pathSegments) {
+      if (isNotConstant(seg)) {
+        // excluding the key variable
+        return pathSegments.slice(firstKeyIndex, pathSegments.length)
+      }
+      firstKeyIndex += 1
+    }
+
+    // throw exception here
+    Array("")
   }
 
   def computeRootDirPath(): String = {
@@ -31,6 +47,8 @@ class PathPattern(path: String) {
       }
       firstKeyIndex += 1
     }
+
+    // throw exception here
     ""
   }
 
@@ -46,5 +64,24 @@ class PathPattern(path: String) {
     val keyVariable1 = keyVariables.sortWith(_ < _)
     val keyVariable2 = otherPP.keyVariables.sortWith(_ < _)
     return keyVariable1.deep == keyVariable2.deep
+  }
+
+  def hasNextLevel(currentLevel: Int): Boolean = {
+    // currentLeve = 1 means it is currently at the root directory
+    currentLevel <= pathSegmentsBelowRoot.length
+  }
+
+  def getLevel(currentLevel: Int): String = {
+    if (currentLevel < 2) {
+      throw new Exception("Pls enter level greater than or equal to 2.")
+    }
+    pathSegmentsBelowRoot(currentLevel-2)
+  }
+
+  def isCurrentLevelConstant(currentLevel: Int): Boolean = {
+    // level 1 is root node
+    // level 2 is the first level below root node
+
+    !isNotConstant(getLevel(currentLevel))
   }
 }

@@ -54,4 +54,22 @@ class PathPatternTest extends FunSuite {
     val pp2 = new PathPattern(path2)
     assert(pp1.matchedKeyVariables(pp2))
   }
+
+  test("test isCurrentLevelConstant") {
+    val path = "//some/root/*//123"
+    val pp = new PathPattern(path)
+    assert(pp.isCurrentLevelConstant(3))
+  }
+
+  test("test isCurrentLevelConstant2") {
+    val path = "//some/root/*//123"
+    val pp = new PathPattern(path)
+    assert(!pp.isCurrentLevelConstant(2))
+  }
+
+  test("test getLevel") {
+    val path = "//some/root/*//123"
+    val pp = new PathPattern(path)
+    assert(pp.getLevel(2) == "*")
+  }
 }
