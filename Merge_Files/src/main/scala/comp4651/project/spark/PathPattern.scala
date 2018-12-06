@@ -1,8 +1,55 @@
 package comp4651.project.spark
 
-class PathPattern(path: String) {
+import scala.collection.mutable.ArrayBuffer
 
-  val pathSegments: Array[String] = {
+class PathPattern(pattern: String) {
+
+  val pathSegments: Array[String] = computePathSegments(pattern)
+
+  val rootDirPath: String = "/" + computeRootDirSegments(pathSegments).mkString("/")
+
+  val numOfRootDirSegments: Int = computeRootDirSegments(pathSegments).length
+
+  val pathSegmentsBelowRoot: Array[String] = computePathSegmentsBelowRoot(pathSegments)
+
+  val keyVariables: Array[String] = pathSegments.filter(isKey)
+
+  val keyVariableLevels: Array[Int] = computeKeyVariableLevels(pathSegments)
+
+  // assume that the path passed in this function and the constructor have
+  // the same number of levels
+  def extractKey(path: String): String = {
+    val pS = computePathSegments(path)
+    val keyVars = ArrayBuffer.empty[String]
+    for (l <- keyVariableLevels) {
+      keyVars += pS(levelToIndex(l))
+    }
+
+    // use for group by operation
+    keyVars.mkString("/")
+  }
+
+  def levelToIndex(l: Int): Int = {
+    if (l < 2) {
+      throw new Exception("Pls enter level greater than or equal to 2.")
+    }
+    l-2+numOfRootDirSegments
+  }
+
+  def computeKeyVariableLevels(pS: Array[String]): Array[Int] = {
+    val pSBelowRoot = computePathSegmentsBelowRoot(pathSegments)
+    val levels = ArrayBuffer.empty[Int]
+    var level = 2
+    for (seg <- pSBelowRoot) {
+      if (isKey(seg)) {
+        levels += level
+      }
+      level += 1
+    }
+    levels.toArray
+  }
+
+  def computePathSegments(path: String): Array[String] = {
     var pathSeg = path.split("/+")
 
     // remove leading and trailing empty segments
@@ -16,40 +63,23 @@ class PathPattern(path: String) {
     pathSeg
   }
 
-  val rootDirPath: String = computeRootDirPath()
-
-  val pathSegmentsBelowRoot: Array[String] = computePathSegmentsBelowRoot()
-
-  val keyVariables: Array[String] = {
-    pathSegments.filter(isKey)
+  def computePathSegmentsBelowRoot(pS: Array[String]): Array[String] = {
+    val numOfRootSegments = computeRootDirSegments(pS).length
+    pS.slice(numOfRootSegments, pS.length)
   }
 
-  def computePathSegmentsBelowRoot(): Array[String] = {
+  def computeRootDirSegments(pS: Array[String]): Array[String] = {
     var firstKeyIndex = 0
-    for (seg <- pathSegments) {
+    for (seg <- pS) {
       if (isNotConstant(seg)) {
         // excluding the key variable
-        return pathSegments.slice(firstKeyIndex, pathSegments.length)
+        return pS.slice(0, firstKeyIndex)
       }
       firstKeyIndex += 1
     }
 
-    // throw exception here
-    Array("")
-  }
-
-  def computeRootDirPath(): String = {
-    var firstKeyIndex = 0
-    for (seg <- pathSegments) {
-      if (isNotConstant(seg)) {
-        // excluding the key variable
-        return "/" + pathSegments.slice(0, firstKeyIndex).mkString("/")
-      }
-      firstKeyIndex += 1
-    }
-
-    // throw exception here
-    ""
+    // the case that the whole input pattern is the root directory path
+    pS.slice(0, firstKeyIndex)
   }
 
   private[this] def isKey(seg: String): Boolean = {

@@ -93,7 +93,7 @@ object MergeFiles {
 
     // condition checking
     if (!inputPathPattern.matchedKeyVariables(outputPathPattern)) {
-      // throw exception here
+      throw new Exception("Input pattern and output pattern should have the same number of key variables.")
     }
 
 
@@ -101,16 +101,47 @@ object MergeFiles {
 
 
 
-    // use iterative BFS to get all matched directory path loaded into rdd
+    // use iterative BFS to get all "matched" directory path loaded into RDD
     val directoryPathsRDD = iterativeBFSLoadDirectories(sc, inputPathPattern).persist()
     print("[Output] Number of directories matched: "+directoryPathsRDD.count())
 
     // map into key value pair and group by key
+    val keyDirectoryPathPairRDD = directoryPathsRDD.map(path => (inputPathPattern.extractKey(path), path))
+      .groupByKey()
 
-    // sort each group by modification time
+    // load files path for each group and sort by modification time
+    val keyFilePairRDD = keyDirectoryPathPairRDD.mapPartitions(it => {
+      val fs = FileSystem.get(new Configuration())
+
+      // each key will form one group
+      it.map{case (key, dirPaths) => {
+        // in each group list its immediate children files
+        val filePaths = dirPaths.flatMap(p => {
+          val allStatus: RemoteIterator[LocatedFileStatus] = fs.listFiles(new Path(p), false)
+          val timePathPair = ArrayBuffer.empty[(Long, String)]
+          while (allStatus.hasNext) {
+            val status = allStatus.next()
+            timePathPair += ((status.getModificationTime, status.getPath.toString))
+          }
+          timePathPair
+        })
+          .toArray
+
+          // sort by modification time
+          .sortWith(_._1 < _._1)
+
+          // discard the time
+          .map {case (time, path) => path }
+
+        (key, filePaths)
+      }}
+    })
 
     // for each group create new file and append all small files into it
     // also deleted successful group
+    keyFilePairRDD.foreachPartition{case (key, filePaths) => {
+      
+    }}
 
     // use BFS with backtracking to delete "useless" directories that matches input directory pattern
   }
