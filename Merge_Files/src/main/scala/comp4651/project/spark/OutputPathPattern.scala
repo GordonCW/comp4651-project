@@ -43,19 +43,22 @@ class OutputPathPattern(pattern: String, inputPattern: PathPattern) extends Path
     uniqueKeyVariables
   }
 
-  val generateOutputPath: String => String = (key: String) => {
-    if (key.length == 0) {
-      "/" + pathSegments.mkString("/") + "/result.txt"
-    } else {
-      val outputPath = pathSegments
-      val keyArray = key.split("/+").zipWithIndex
-        .map{case (k, i) => (k, inputKeyToPathSegmentsIndexMap(i))}
+  def getGenerateOutputPathFunc(pathSegments: Array[String] = pathSegments.clone(),
+                                inputKeyToPathSegmentsIndexMap: Map[Int, Int] = inputKeyToPathSegmentsIndexMap.toList.toMap): String => String = {
+    key: String => {
+      if (key.length == 0) {
+        "/" + pathSegments.mkString ("/") + "/result.txt"
+      } else {
+        val outputPath = pathSegments
+        val keyArray = key.split ("/+").zipWithIndex
+        .map {case (k, i) => (k, inputKeyToPathSegmentsIndexMap (i) )}
 
-      for ((k, i) <- keyArray) {
-        outputPath(i) = k
+        for ((k, i) <- keyArray) {
+          outputPath (i) = k
+        }
+
+        "/" + outputPath.mkString ("/") + "/result.txt"
       }
-
-      "/" + outputPath.mkString("/") + "/result.txt"
     }
   }
 }

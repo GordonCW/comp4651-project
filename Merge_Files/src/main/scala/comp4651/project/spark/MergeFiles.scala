@@ -108,7 +108,7 @@ object MergeFiles {
     println(directoryPathsRDD.collect().mkString("\n"))
     println("[Output] Number of directories matched: "+directoryPathsRDD.count())
 
-    val extractKeyFunc = inputPathPattern.extractKey(_)
+    val extractKeyFunc = inputPathPattern.getExtractKeyFunc()
 
     // map into key value pair and group by key
     val keyDirectoryPathPairRDD = directoryPathsRDD.map(path => (extractKeyFunc(path), path))
@@ -142,7 +142,7 @@ object MergeFiles {
       }}
     })
 
-    val generateOutputPathFunc = outputPathPattern.generateOutputPath(_)
+    val generateOutputPathFunc = outputPathPattern.getGenerateOutputPathFunc()
 
     // for each group create new file and append all small files into it
     // also deleted successful group
@@ -152,24 +152,31 @@ object MergeFiles {
 
         // create an empty file based on output directory pattern
         val targetFilePath = generateOutputPathFunc(k)
-        val out = fs.create(new Path(targetFilePath), true)
 
-        // append all the small files into the target file
-        for (s <- filePaths) {
-          val in = fs.open(new Path(s))
-          try {
-            IOUtils.copyBytes(in, out, fs.getConf, false)
-            // can comment if every file end with a newline character
-            out.write("\n".getBytes("UTF-8"))
-          } finally {
-            in.close()
+        if (filePaths.length != 0) {
+          val out = fs.create(new Path(targetFilePath), true)
+
+          // append all the small files into the target file
+          for (s <- filePaths) {
+            val in = fs.open(new Path(s))
+            try {
+              IOUtils.copyBytes(in, out, fs.getConf, false)
+              // can comment if every file end with a newline character
+              out.write("\n".getBytes("UTF-8"))
+            } finally {
+              in.close()
+            }
           }
+
+          out.close()
+
+          // delete small files here...
+          for (s <- filePaths) {
+            fs.delete(new Path(s), false)
+          }
+        } else {
+          // do nothing
         }
-
-        out.close()
-
-        // delete small files here...
-        for (s <- filePaths) { fs.delete(new Path(s), false) }
       }}
     })
 

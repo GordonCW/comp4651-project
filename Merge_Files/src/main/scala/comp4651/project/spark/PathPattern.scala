@@ -2,21 +2,25 @@ package comp4651.project.spark
 
 import scala.collection.mutable.ArrayBuffer
 
-class PathPattern(pattern: String) {
+class PathPattern(pattern: String) extends java.io.Serializable {
 
-  val computePathSegments: String => Array[String] = (path: String) => {
-    var pathSeg = path.split("/+")
+  def computePathSegmentsClosure(): String => Array[String] = {
+    path: String => {
+      var pathSeg = path.split("/+")
 
-    // remove leading and trailing empty segments
-    if (pathSeg(0).length == 0) {
-      pathSeg = pathSeg.drop(1)
+      // remove leading and trailing empty segments
+      if (pathSeg(0).length == 0) {
+        pathSeg = pathSeg.drop(1)
+      }
+      val len = pathSeg.length
+      if (pathSeg(len - 1).length == 0) {
+        pathSeg = pathSeg.dropRight(1)
+      }
+      pathSeg
     }
-    val len = pathSeg.length
-    if (pathSeg(len - 1).length == 0) {
-      pathSeg = pathSeg.dropRight(1)
-    }
-    pathSeg
   }
+
+  val computePathSegments: String => Array[String] = computePathSegmentsClosure()
 
   val pathSegments: Array[String] = computePathSegments(pattern)
 
@@ -32,15 +36,19 @@ class PathPattern(pattern: String) {
 
   // assume that the path passed in this function and the constructor have
   // the same number of levels
-  val extractKey: String => String = (path: String) => {
-    val pS = computePathSegments(path)
-    val keyVars = ArrayBuffer.empty[String]
-    for (l <- keyVariableLevels) {
-      keyVars += pS(levelToIndex(l))
-    }
+  def getExtractKeyFunc(computePathSegments: String => Array[String] = computePathSegmentsClosure(),
+                        keyVariableLevels: Array[Int] = keyVariableLevels.clone()): String => String = {
+    // extract key function here
+    path: String => {
+      val pS = computePathSegments(path)
+      val keyVars = ArrayBuffer.empty[String]
+      for (l <- keyVariableLevels) {
+        keyVars += pS(levelToIndex(l))
+      }
 
-    // use for group by operation
-    keyVars.mkString("/")
+      // use for group by operation
+      keyVars.mkString("/")
+    }
   }
 
   def levelToIndex(l: Int): Int = {

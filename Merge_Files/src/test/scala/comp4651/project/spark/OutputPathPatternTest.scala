@@ -8,7 +8,7 @@ class OutputPathPatternTest extends FunSuite {
     val outputPath = "/another/root/<>/<key1>/<>/<key>"
     val input = new PathPattern(inputPath)
     val output = new OutputPathPattern(outputPath, input)
-    assert(output.generateOutputPath("KEY/empty1/empty2/KEY1") == "/another/root/empty1/KEY1/empty2/KEY/result.txt")
+    assert(output.getGenerateOutputPathFunc()("KEY/empty1/empty2/KEY1") == "/another/root/empty1/KEY1/empty2/KEY/result.txt")
   }
 
   test("test generateOutputPath2") {
@@ -16,7 +16,7 @@ class OutputPathPatternTest extends FunSuite {
     val outputPath = "/another/root/"
     val input = new PathPattern(inputPath)
     val output = new OutputPathPattern(outputPath, input)
-    assert(output.generateOutputPath("") == "/another/root/result.txt")
+    assert(output.getGenerateOutputPathFunc()("") == "/another/root/result.txt")
   }
 
   test("test generateOutputPath3") {
@@ -24,6 +24,6 @@ class OutputPathPatternTest extends FunSuite {
     val outputPath = "/another/root/<key3>/<key1>/<key2>"
     val input = new PathPattern(inputPath)
     val output = new OutputPathPattern(outputPath, input)
-    assert(output.generateOutputPath("1/2/3") == "/another/root/3/1/2/result.txt")
+    assert(output.getGenerateOutputPathFunc()("1/2/3") == "/another/root/3/1/2/result.txt")
   }
 }

@@ -76,12 +76,12 @@ class PathPatternTest extends FunSuite {
   test("test extractKey") {
     val path = "//some/root/<key1>/456/<>/<key3>/123"
     val pp = new PathPattern(path)
-    assert(pp.extractKey("//some/root/key11/456/key22/key33/123") == "key11/key22/key33")
+    assert(pp.getExtractKeyFunc()("//some/root/key11/456/key22/key33/123") == "key11/key22/key33")
   }
 
   test("test extractKey2") {
     val path = "//some/root//123"
     val pp = new PathPattern(path)
-    assert(pp.extractKey("//some/root//123") == "")
+    assert(pp.getExtractKeyFunc()("//some/root//123") == "")
   }
 }
