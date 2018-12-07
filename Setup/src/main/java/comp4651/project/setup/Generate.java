@@ -14,14 +14,14 @@ public class Generate {
 	public static int domainNum;
 	public static int fileNum;
 	public static int lineNum;
-	
+
 	static class CreateFile extends Thread {
 		CreateFile(int i) {
 			this.i = i;
 		}
-		
+
 		int i;
-		
+
 		public void run() {
 			try {
 				FileSystem fs = FileSystem.get(new Configuration());
@@ -35,7 +35,7 @@ public class Generate {
 						out = fs.create(new Path(filename));
 						StringBuilder builder = new StringBuilder();
 						for (int l = 0; l < lineNum; ++l) {
-						  builder.append(l + ", " + filename);
+						  builder.append(l + ", " + filename + "\n");
 						}
 						out.writeBytes(builder.toString());
 						out.close();
@@ -44,23 +44,24 @@ public class Generate {
 				}
 				fs.close();
 			} catch (Exception e) {
-				System.out.println(e);
+				e.printStackTrace(System.out);
 			}
 		}
 	}
-	
+
   public static void main(String args[]) throws IOException {
-    int hostNum = Integer.valueOf(args[0]);
-	domainNum = Integer.valueOf(args[1]);
-	fileNum = Integer.valueOf(args[2]);
-	lineNum = Integer.valueOf(args[3]);
-	
+		int hostNum = Integer.valueOf(args[0]);
+		domainNum = Integer.valueOf(args[1]);
+		fileNum = Integer.valueOf(args[2]);
+		lineNum = Integer.valueOf(args[3]);
+
     // cleanup the root
-	FileSystem fs = FileSystem.get(new Configuration());
-    fs.delete(new Path("/inputs"), true);
+		FileSystem fs = FileSystem.get(new Configuration());
+		fs.delete(new Path("/inputs"), true);
+		fs.close();
 
     for (int i = 1; i <= hostNum; ++i) {
-	  new CreateFile(i).start();
+			new CreateFile(i).start();
     }
   }
 }
