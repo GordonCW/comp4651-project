@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.lang.Thread;
 import java.lang.StringBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -16,15 +19,16 @@ public class Generate {
 	public static int lineNum;
 
 	static class CreateFile extends Thread {
-		CreateFile(int i) {
+		CreateFile(int i, FileSystem fs) {
 			this.i = i;
+			this.fs = fs;
 		}
 
 		int i;
+		FileSystem fs;
 
 		public void run() {
 			try {
-				FileSystem fs = FileSystem.get(new Configuration());
 				FSDataOutputStream out = null;
 				for (int j = 1; j <= domainNum; ++j) {
 					for (int k = 1; k <= fileNum; ++k) {
@@ -42,14 +46,13 @@ public class Generate {
 					}
 					System.out.println("host" + i + ", " + "domain" + j);
 				}
-				fs.close();
 			} catch (Exception e) {
 				e.printStackTrace(System.out);
 			}
 		}
 	}
 
-  public static void main(String args[]) throws IOException {
+  public static void main(String args[]) throws IOException, InterruptedException {
 		int hostNum = Integer.valueOf(args[0]);
 		domainNum = Integer.valueOf(args[1]);
 		fileNum = Integer.valueOf(args[2]);
@@ -58,10 +61,16 @@ public class Generate {
     // cleanup the root
 		FileSystem fs = FileSystem.get(new Configuration());
 		fs.delete(new Path("/inputs"), true);
-		fs.close();
 
+		List<CreateFile> threads = new ArrayList<CreateFile>();
     for (int i = 1; i <= hostNum; ++i) {
-			new CreateFile(i).start();
+			CreateFile cF = new CreateFile(i, fs);
+			cF.start();
+			threads.add(cF);
     }
+
+		for (CreateFile cF: threads) {
+			cF.join();
+		}
   }
 }

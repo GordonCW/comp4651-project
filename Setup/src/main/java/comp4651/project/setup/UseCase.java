@@ -69,7 +69,12 @@ public class UseCase {
       String thatLine = "/inputs/host" + h[i] + "/domain" + d[i] + "/";
       thatLine += t[i] + ".txt";
 
+
+
       if (!readContent.contains(thatLine)) {
+        System.out.println(readContent);
+        System.out.println();
+        System.out.println(thatLine);
         System.out.println("content doesn't exist");
       }
 
