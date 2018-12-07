@@ -147,7 +147,9 @@ object MergeFiles {
     // for each group create new file and append all small files into it
     // also deleted successful group
     keyFilePairRDD.foreachPartition(it => {
-      val fs = FileSystem.get(new Configuration())
+      val config = new Configuration()
+      config.addResource(new Path("file:///etc/hadoop/conf/hdfs-site.xml"))
+      val fs = FileSystem.get(config)
       it.foreach{case (k, filePaths) => {
 
         // create an empty file based on output directory pattern
@@ -170,10 +172,11 @@ object MergeFiles {
 
           out.close()
 
-          // delete small files here...
-          for (s <- filePaths) {
-            fs.delete(new Path(s), false)
-          }
+//          // delete small files here...
+//          for (s <- filePaths) {
+//            fs.delete(new Path(s), false)
+//          }
+
         } else {
           // do nothing
         }
