@@ -20,13 +20,13 @@ public class Test {
 
         String expectedContent = "";
         for (int k = 1; k <= 10; ++k) {
-          expectedContent +=  "inputs/host" + String.valueOf(i) + "/";
+          expectedContent +=  "/inputs/host" + String.valueOf(i) + "/";
           expectedContent += "domain" + String.valueOf(j) + "/";
           expectedContent += String.valueOf(k) + ".txt";
           expectedContent += "\n";
         }
 
-        String result = "outputs/host" + String.valueOf(i) + "/";
+        String result = "/outputs/host" + String.valueOf(i) + "/";
         result += "domain" + String.valueOf(j) + "/";
         result += "result.txt";
 
