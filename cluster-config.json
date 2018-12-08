@@ -1,0 +1,9 @@
+[
+  {
+    "Classification": "hdfs-site",
+    "Properties": {
+      "dfs.replication": "3",
+      "dfs.block.size": "64m"
+    }
+  }
+]
