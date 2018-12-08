@@ -1,5 +1,6 @@
 package comp4651.project.setup;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.Math;
 import java.time.Duration;
@@ -13,6 +14,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 
 
 public class LargeFileOptimized {
@@ -38,7 +40,6 @@ public class LargeFileOptimized {
     int[] d = generateRandomNumbers(N, 1, numDomain);
     int[] t = generateRandomNumbers(N, 1, numText);
 
-
     // read from large file, unoptimized
     Instant start = Instant.now();
 
@@ -47,11 +48,10 @@ public class LargeFileOptimized {
       filename += "result.txt";
 
       in = fs.open(new Path(filename));
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-      byte[] readByte = new byte[in.available()];
-      in.read(readByte);
-
-      String readContent = readByte.toString();
+      IOUtils.copyBytes(in, out, 4096);
+      String readContent = new String(out.toByteArray(), "UTF-8");
 
       String thatLine = "/inputs/host" + h[i] + "/domain" + d[i] + "/";
       thatLine += t[i] + ".txt";
@@ -70,8 +70,6 @@ public class LargeFileOptimized {
 
 
 
-
-
     // read from large file, optimized
     start = Instant.now();
 
@@ -86,10 +84,6 @@ public class LargeFileOptimized {
     sortedTuples.sort(new Comparator<List<Integer>>() {
       @Override
       public int compare(List<Integer> l1, List<Integer> l2) {
-        //
-        // if (l1.get(0) == l2.get(0) && l1.get(1) == l2.get(1) && l1.get(2) == l2.get(2)) {
-        //   return 0;
-        // }
         if (l1.get(0) < l2.get(0)) return -1;
         if (l1.get(0) > l2.get(0)) return 1;
 
@@ -112,11 +106,10 @@ public class LargeFileOptimized {
       filename += "result.txt";
 
       in = fs.open(new Path(filename));
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-      byte[] readByte = new byte[in.available()];
-      in.read(readByte);
-
-      String readContent = readByte.toString();
+      IOUtils.copyBytes(in, out, 4096);
+      String readContent = new String(out.toByteArray());
 
       String thatLine = "/inputs/host" + host + "/domain" + domain + "/";
       thatLine += text + ".txt";
@@ -128,12 +121,9 @@ public class LargeFileOptimized {
       in.close();
     }
 
-
     end = Instant.now();
-
     timeElapsed = Duration.between(start, end);
     System.out.println("Time taken for optimized large files: " + timeElapsed.toMillis() +" milliseconds");
-
 
     fs.close();
   }

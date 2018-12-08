@@ -1,4 +1,5 @@
 ## Workflow
+0. Cleanup with `hadoop fs -rm -r /outputs /inputs /jars || rm *.jar`
 1. Build jar files with `mvn clean package` executed separately within directory `Merge_Files` and `Setup`
 2. Upload 2 jar files generated to Amazon S3
 3. Launch an Amazon EMR cluster
@@ -10,4 +11,4 @@
 9. Generate multiple small files with `hadoop jar setup.jar comp4651.project.setup.Generate <i> <j> <k> <l>`
 10. Run small files merging program with `spark-submit --class comp4651.project.spark.MergeFiles --master yarn --deploy-mode client merge.jar --input "/inputs/<key1>/<key2>/" --output "/outputs/<key1>/<key2>/"`
 11. Validate the output of small files merging program with `hadoop jar setup.jar comp4651.project.setup.Test <i> <j> <k> <l>`
-12. Evaluate small files merging program with `hadoop jar setup.jar comp4651.project.setup.UseCase <N> <i> <j> <k>`
+12. Evaluate small files merging program with `hadoop jar setup.jar comp4651.project.setup.UseCase <N> <i> <j> <k>` and `hadoop jar setup.jar comp4651.project.setup.LargeFileOptimized <N> <i> <j> <k>`
