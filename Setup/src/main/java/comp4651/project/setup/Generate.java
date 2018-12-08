@@ -39,7 +39,7 @@ public class Generate {
 						out = fs.create(new Path(filename));
 						StringBuilder builder = new StringBuilder();
 						for (int l = 0; l < lineNum; ++l) {
-						  builder.append(l + ", " + filename + "\n");
+							builder.append(l + ", " + filename + "\n");
 						}
 						out.writeBytes(builder.toString());
 						out.close();
@@ -52,13 +52,13 @@ public class Generate {
 		}
 	}
 
-  public static void main(String args[]) throws IOException, InterruptedException {
+	public static void main(String args[]) throws IOException, InterruptedException {
 		int hostNum = Integer.valueOf(args[0]);
 		domainNum = Integer.valueOf(args[1]);
 		fileNum = Integer.valueOf(args[2]);
 		lineNum = Integer.valueOf(args[3]);
 
-    // cleanup the root
+		// cleanup the root
 		FileSystem fs = FileSystem.get(new Configuration());
 		fs.delete(new Path("/inputs"), true);
 

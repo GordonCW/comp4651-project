@@ -1,5 +1,6 @@
 package comp4651.project.setup;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.StringBuilder;
 
@@ -7,7 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
-
+import org.apache.hadoop.io.IOUtils;
 
 public class Test {
   public static void main(String args[]) throws IOException {
@@ -28,10 +29,11 @@ public class Test {
 
         for (int k = 1; k <= fileNum; ++k) {
           for (int l = 0; l < lineNum; ++l) {
-            builder.append("/inputs/host" + String.valueOf(i) + "/");
-            builder.append("domain" + String.valueOf(j) + "/");
-            builder.append(String.valueOf(k) + ".txt\n");
+            builder.append(l + ", /inputs/host" + i + "/");
+            builder.append("domain" + j + "/");
+            builder.append(k + ".txt\n");
           }
+          builder.append("\n");
         }
 
         String expectedContent = builder.toString();
@@ -44,10 +46,10 @@ public class Test {
         // check if file exists or not
         if (fs.exists(path)) {
           in = fs.open(path);
+          ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-          byte[] readByte = new byte[in.available()];
-          in.read(readByte);
-          String readContent = new String(readByte);
+          IOUtils.copyBytes(in, out, 4096);
+          String readContent = new String(out.toByteArray());
 
           if (readContent.equals(expectedContent)) {
             System.out.println("okay");
