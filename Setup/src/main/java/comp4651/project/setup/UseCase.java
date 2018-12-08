@@ -1,5 +1,6 @@
 package comp4651.project.setup;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.Math;
 import java.time.Duration;
@@ -9,6 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 
 
 public class UseCase {
@@ -40,9 +42,11 @@ public class UseCase {
       filename += t[i] + ".txt";
 
       in = fs.open(new Path(filename));
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-      byte[] readByte = new byte[in.available()];
-      in.read(readByte);
+      IOUtils.copyBytes(in, out, 4096);
+      String readContent = new String(out.toByteArray(), "UTF-8");
+
       in.close();
     }
 
@@ -60,16 +64,13 @@ public class UseCase {
       filename += "result.txt";
 
       in = fs.open(new Path(filename));
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-      byte[] readByte = new byte[in.available()];
-      in.read(readByte);
-
-      String readContent = readByte.toString();
+      IOUtils.copyBytes(in, out, 4096);
+      String readContent = new String(out.toByteArray(), "UTF-8");
 
       String thatLine = "/inputs/host" + h[i] + "/domain" + d[i] + "/";
       thatLine += t[i] + ".txt";
-
-
 
       if (!readContent.contains(thatLine)) {
         System.out.println(readContent);
