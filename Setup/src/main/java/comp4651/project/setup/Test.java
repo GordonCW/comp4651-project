@@ -1,6 +1,7 @@
 package comp4651.project.setup;
 
 import java.io.IOException;
+import java.lang.StringBuilder;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -10,25 +11,33 @@ import org.apache.hadoop.fs.Path;
 
 public class Test {
   public static void main(String args[]) throws IOException {
+    int hostNum = Integer.valueOf(args[0]);
+    int domainNum = Integer.valueOf(args[1]);
+    int fileNum = Integer.valueOf(args[2]);
+    int lineNum = Integer.valueOf(args[3]);
+
     Configuration conf = new Configuration();
     FileSystem fs = FileSystem.get(conf);
 
     FSDataInputStream in = null;
 
-    for (int i = 1; i <= 7; ++i) {
-      for (int j = 1; j <= 8; ++j) {
+    for (int i = 1; i <= hostNum; ++i) {
+      for (int j = 1; j <= domainNum; ++j) {
 
-        String expectedContent = "";
-        for (int k = 1; k <= 10; ++k) {
-          expectedContent +=  "/inputs/host" + String.valueOf(i) + "/";
-          expectedContent += "domain" + String.valueOf(j) + "/";
-          expectedContent += String.valueOf(k) + ".txt";
-          expectedContent += "\n";
+        StringBuilder builder = new StringBuilder();
+
+        for (int k = 1; k <= fileNum; ++k) {
+          for (int l = 0; l < lineNum; ++l) {
+            builder.append("/inputs/host" + String.valueOf(i) + "/");
+            builder.append("domain" + String.valueOf(j) + "/");
+            builder.append(String.valueOf(k) + ".txt\n");
+          }
         }
 
+        String expectedContent = builder.toString();
+
         String result = "/outputs/host" + String.valueOf(i) + "/";
-        result += "domain" + String.valueOf(j) + "/";
-        result += "result.txt";
+        result += "domain" + String.valueOf(j) + "/result.txt";
 
         Path path = new Path(result);
 
