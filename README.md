@@ -1,5 +1,4 @@
 ## Workflow
-0. Cleanup with `hadoop fs -rm -r /outputs /inputs /jars || rm *.jar`
 1. Build jar files with `mvn clean package` executed separately within directory `Merge_Files` and `Setup`
 2. Upload 2 jar files generated to Amazon S3
 3. Launch an Amazon EMR cluster
