@@ -1,5 +1,5 @@
 # Files Merging Program
-The program is written as a spack application program. It is recommended to build the program using Maven.
+The program is written as a Apache Spack application program. It is recommended to build the program using Maven.
 
 Issuing `spark-submit --class comp4651.project.spark.MergeFiles --master yarn --deploy-mode client
 <local file system path to the project jar file> --input "<input directory pattern>" --output "<output directory pattern>"`
