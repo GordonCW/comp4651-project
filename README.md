@@ -1,7 +1,7 @@
 ## Workflow
 1. Build jar files with `mvn clean package` executed separately within directory `Merge_Files` and `Setup`
-2. Upload 2 jar files generated to Amazon S3
-3. Launch an Amazon EMR cluster
+2. Upload 2 jar files generated and the cluster-config.json file to Amazon S3
+3. Launch an Amazon EMR cluster with the configuration pointing to cluster-config.json on AWS S3.
 4. Connect to the master node of Amazon EMR cluster with `ssh <hadoop@ec2-###-##-##-###.compute-1.amazonaws.com> -i <path/to/KeyPair.pem>`
 5. Move the setup jar file from S3 to HDFS with `hadoop distcp s3n://<your bucket name>/<name of setup>.jar /jars/setup.jar`
 6. Move the merge jar file from S3 to HDFS with `hadoop distcp s3n://<your bucket name>/<name of merge>.jar /jars/merge.jar`
